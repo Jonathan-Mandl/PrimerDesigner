@@ -97,7 +97,7 @@ def main():
 
     quick_primers = []
     for start, end, strand in primer_locations:
-        quick_primers.append((start - len(GU.UPSTREAM_NT), end - len(GU.UPSTREAM_NT), strand))
+        quick_primers.append((start - len(GU.UPSTREAM_NT)-1, end - len(GU.UPSTREAM_NT), strand))
 
     quick_set = primer_df.loc[quick_primers].copy().reset_index()
     quick_efficiency = float(quick_set["efficiency"].sum())

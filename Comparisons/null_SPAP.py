@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 import networkx as nx
 from General.primer_graphs import create_primer_df, create_graph
+
 from General.args import *
 import sys
 import csv
@@ -15,7 +16,7 @@ def export_null_paths_primers_py3(
     paths,
     template_5to3,
     out_csv_path,
-    protein_name="GELLER",
+    protein_name="SPAP",
     method="NullWeighted"
 ):
     """
@@ -83,11 +84,11 @@ def primer_seq_from_template(template_5to3: str, start: int, end: int, strand: s
 
 
 def main():
-    protein_name = "GELLER"
+    protein_name = "SPAP"
      # Load config
-    GU.UPSTREAM_NT, GU.DOWNSTREAM_NT, GU.MAX_TM = GU.load_config("configs/geller_experiment.json")
+    GU.UPSTREAM_NT, GU.DOWNSTREAM_NT, GU.MAX_TM = GU.load_config("configs/SPAP_experiment.json")
 
-    mutreg_nt = GU.read_fasta("data/geller_reference.fa")
+    mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
 
     sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
 
@@ -98,9 +99,6 @@ def main():
             ]
 
     args = get_args()
-
-    args.oligo_lmin = 295
-    args.oligo_lmax = 305
 
     t0 = time.time()
 
@@ -115,7 +113,7 @@ def main():
     export_null_paths_primers_py3(
         paths=sampled_paths,
         template_5to3=sequence_nt,
-        out_csv_path="results/null_paths_primers_Geller.csv",
+        out_csv_path="results/null_paths_primers_SPAP.csv",
         protein_name=protein_name,
         method="NullWeighted"
     )
