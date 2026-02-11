@@ -105,6 +105,8 @@ def _weighted_func_from_scores(scores: dict) -> float:
 
 def create_primer_df(sequence_nt, args):
 
+    PCR = GU.get_PCR()
+
     print("Creating primer df")
 
     # Forward primers
@@ -126,20 +128,20 @@ def create_primer_df(sequence_nt, args):
 
     # ---- raw features needed for scoring ----
     primer_df['gc'] = primer_df.seq.apply(calc_gc)
-    primer_df['tm'] = primer_df.seq.apply(GU.PCR.calc_tm)
+    primer_df['tm'] = primer_df.seq.apply(PCR.calc_tm)
 
     # hairpin & homodimer (we’ll use Tm for the “self” feature)
-    hp_res = primer_df.seq.apply(lambda s: GU.PCR.calc_hairpin(s).todict())
+    hp_res = primer_df.seq.apply(lambda s: PCR.calc_hairpin(s).todict())
     primer_df['hp_tm'] = hp_res.apply(lambda d: d['tm'])
 
-    ho_res = primer_df.seq.apply(lambda s: GU.PCR.calc_homodimer(s).todict())
+    ho_res = primer_df.seq.apply(lambda s: PCR.calc_homodimer(s).todict())
     primer_df['ho_tm'] = ho_res.apply(lambda d: d['tm'])
 
     # 3' end features
     primer_df['endA']  = primer_df.seq.apply(count_terminal_As_3prime)
 
     # 3' end stability of last 5-nt
-    endstab_res = primer_df.seq.apply(lambda s: GU.PCR.calc_end_stability(s[-5:], GU.revcomp(s[-5:])).todict())
+    endstab_res = primer_df.seq.apply(lambda s: PCR.calc_end_stability(s[-5:], GU.revcomp(s[-5:])).todict())
     # Primer3 returns dG in cal/mol; convert to kcal/mol like you did for hp/ho:
     primer_df['end_dg'] = endstab_res.apply(lambda res: res['dg'] * 1e-3)
 
@@ -149,8 +151,8 @@ def create_primer_df(sequence_nt, args):
     primer_df['score_endA']  = primer_df.endA.apply(lambda x: _score_endA(x))
     primer_df['score_enddG'] = primer_df.end_dg.apply(lambda x: _score_enddG(x))
 
-    # ---- final cost (lower is better) : weighted sum of (1 - score) ----
-    def primer_cost_row(row):
+    # final effieincy score as weighted average of feature scores
+    def primer_efficiency_row(row):
         scores = {
             'tm':    row['score_tm'],
             'gc':    row['score_gc'],
@@ -160,7 +162,7 @@ def create_primer_df(sequence_nt, args):
         }
         return _weighted_func_from_scores(scores)
 
-    primer_df['efficiency'] = primer_df.apply(primer_cost_row, axis=1)
+    primer_df['efficiency'] = primer_df.apply(primer_efficiency_row, axis=1)
     primer_df.reset_index(inplace=True)
     primer_df.set_index(['start','stop','fr'], inplace=True)
     return primer_df
