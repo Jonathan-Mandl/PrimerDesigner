@@ -99,8 +99,8 @@ def main():
 
     args = get_args()
 
-    args.oligo_lmin = 295
-    args.oligo_lmax = 305
+    args.oligo_lmin = 240
+    args.oligo_lmax = 260
 
     t0 = time.time()
 
