@@ -151,7 +151,7 @@ GELLER_PRIMERS = {
 
 def main():
 
-    GU.UPSTREAM_NT, GU.DOWNSTREAM_NT, GU.MAX_TM = GU.load_config("configs/geller_experiment.json")
+    GU.init_config("configs/geller_experiment.json")
 
     mutreg_nt = GU.read_fasta("data/geller_reference.fa")
 
@@ -162,8 +162,8 @@ def main():
     # ---- Args (keep your sys.argv override logic) ----
     args = get_args()
 
-    args.oligo_lmin = 227
-    args.oligo_lmax = 298
+    args.oligo_lmin = 230
+    args.oligo_lmax = 290
 
     t0 = time.time()
 
@@ -192,7 +192,7 @@ def main():
             (r_hit - len(GU.UPSTREAM_NT), r_hit + len(rev) - len(GU.UPSTREAM_NT), "r")
         )
 
-        search_pos = r_hit + len(rev)
+        search_pos = f_hit + len(fwd)
 
     print("All primers were found in sequence!")
 

@@ -130,7 +130,7 @@ def create_primer_df(sequence_nt, args):
     primer_df['gc'] = primer_df.seq.apply(calc_gc)
     primer_df['tm'] = primer_df.seq.apply(PCR.calc_tm)
 
-    # hairpin & homodimer (we’ll use Tm for the “self” feature)
+    # hairpin & homodimer 
     hp_res = primer_df.seq.apply(lambda s: PCR.calc_hairpin(s).todict())
     primer_df['hp_tm'] = hp_res.apply(lambda d: d['tm'])
 

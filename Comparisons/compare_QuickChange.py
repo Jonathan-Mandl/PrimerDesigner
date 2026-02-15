@@ -7,7 +7,6 @@ from General.primer_graphs import create_primer_df, create_graph
 import General.utils as GU
 from General.args import *
 
-
 # -----------------------------
 # Export function (same as Geller/PrimalScheme)
 # -----------------------------
@@ -42,10 +41,10 @@ def export_primer_set(primer_df, nodes, protein_name, method):
 
 
 def main():
+    
     protein_name = "SPAP"
 
-     # ---- Config ----
-    GU.UPSTREAM_NT, GU.DOWNSTREAM_NT, GU.MAX_TM = GU.load_config("configs/SPAP_experiment.json")
+    GU.init_config("configs/SPAP_experiment.json")
 
     # ---- Input sequence ----
     mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
@@ -136,7 +135,6 @@ def main():
         results_dir / "QuickChange_comparison_primers.csv",
         index=False,
     )
-
 
 if __name__ == "__main__":
     main()
