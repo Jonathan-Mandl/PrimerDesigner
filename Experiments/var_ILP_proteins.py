@@ -10,13 +10,6 @@ from PD_var_ILP.ilp_model import *
 from General.args import *
 import sys
 
-
-sys.argv = [
-    sys.argv[0],
-    "--file_path", "data/10_protein_coding_sequences.txt",
-    "--output", "Experiment_results/var_ILP_different_proteins",
-]
-
 args = get_args()
 
 # Create output directory if not exists
@@ -111,7 +104,6 @@ for i,protein in enumerate(all_protein_names):
     with open(json_path, "w") as f:
         json.dump(paths_out, f, indent=2)
     print(f"Saved JSON paths: {json_path}")
-
 
 overall_end = time.time()
 total_minutes = (overall_end - overall_start) / 60

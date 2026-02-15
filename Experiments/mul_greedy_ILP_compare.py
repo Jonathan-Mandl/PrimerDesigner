@@ -6,14 +6,7 @@ import sys
 
 def main():
 
-    sys.argv = [
-        sys.argv[0],
-        "--file_path", "data/10_protein_coding_sequences.txt",
-        "--output", "Experiment_results/mul_greedy_compare",
-        ]
-
     args = get_args()
-
 
     # Create output directory if not exists
     output_dir = Path(args.output)

@@ -10,14 +10,6 @@ from PD_var_ILP.ilp_model import *
 from General.args import *
 import sys
 
-# ============================================================
-# CONFIGURATION
-# ============================================================
-sys.argv = [
-    sys.argv[0],
-    "--file_path", "None",
-    "--output", "Experiment_results/var_ILP_num_variants",
-]
 
 args = get_args()
 

@@ -2,12 +2,6 @@ from PD_mul_greedy.run_mul_greedy import *
 from General.args import *
 import sys
 
-sys.argv = [
-        sys.argv[0],
-        "--file_path", "data/100_ccds_protein_sequences.txt",
-        "--output", "Experiment_results/mul_greedy_ccds",
-        ]
-
 args = get_args()
 
 # Create output directory if not exists

@@ -92,11 +92,6 @@ def main():
 
     sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
 
-    sys.argv = [
-            sys.argv[0],
-            "--file_path", "input_path",
-            "--output", "output_path",
-            ]
 
     args = get_args()
 

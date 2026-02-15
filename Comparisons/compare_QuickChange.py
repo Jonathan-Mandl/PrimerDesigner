@@ -53,11 +53,6 @@ def main():
     sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
 
     # ---- Args (keep your sys.argv override logic) ----
-    sys.argv = [
-        sys.argv[0],
-        "--file_path", "input_path",
-        "--output", "output_path",
-    ]
     args = get_args()
 
     t0 = time.time()
@@ -78,7 +73,7 @@ def main():
     primer_path_nodes = full_path[1:-1]
 
     primer_designer_set = primer_df.loc[primer_path_nodes].copy().reset_index()
-    primer_designer_efficiency = float(primer_designer_set["efficiency"].sum())
+    primer_designer_efficiency = float(primer_designer_set["efficiency"].mean())
 
     longest_path_time = time.time() - longest_path_t0
     total_time = time.time() - t0
@@ -100,7 +95,7 @@ def main():
         quick_primers.append((start - len(GU.UPSTREAM_NT)-1, end - len(GU.UPSTREAM_NT), strand))
 
     quick_set = primer_df.loc[quick_primers].copy().reset_index()
-    quick_efficiency = float(quick_set["efficiency"].sum())
+    quick_efficiency = float(quick_set["efficiency"].mean())
 
     # ---- Create results directory ----
     results_dir = Path("results")
@@ -113,8 +108,8 @@ def main():
         "graph_edges": len(graph.edges),
         "graph_time_sec": round(graph_time, 3),
         "graph_peak_mem_MB": round(graph_peak_mb, 1),
-        "PD_single_efficiency": primer_designer_efficiency,
-        "QuickChange_efficiency": quick_efficiency,
+        "PD_single_avg_efficiency": primer_designer_efficiency,
+        "QuickChange_avg_efficiency": quick_efficiency,
         "PD_single_primers": len(primer_path_nodes),
         "QuickChange_primers": len(quick_primers),
         "shortest_path_time": longest_path_time,

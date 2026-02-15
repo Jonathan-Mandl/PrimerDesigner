@@ -6,14 +6,8 @@ from pathlib import Path
 from PD_mul_ILP.create_graphs import *
 from PD_mul_ILP.ilp_model import *
 from General.args import *
-
 import sys
 
-sys.argv = [
-        sys.argv[0],
-        "--file_path", "data/10_protein_coding_sequences.txt",
-        "--output", "Experiment_results/mul_ilp",
-        ]
 
 args = get_args()
 

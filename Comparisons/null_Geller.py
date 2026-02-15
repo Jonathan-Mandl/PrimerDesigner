@@ -84,6 +84,7 @@ def primer_seq_from_template(template_5to3: str, start: int, end: int, strand: s
 
 def main():
     protein_name = "GELLER"
+    
      # Load config
     GU.UPSTREAM_NT, GU.DOWNSTREAM_NT, GU.MAX_TM = GU.load_config("configs/geller_experiment.json")
 
@@ -91,16 +92,10 @@ def main():
 
     sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
 
-    sys.argv = [
-            sys.argv[0],
-            "--file_path", "input_path",
-            "--output", "output_path",
-            ]
-
     args = get_args()
 
-    args.oligo_lmin = 240
-    args.oligo_lmax = 260
+    args.oligo_lmin = 227
+    args.oligo_lmax = 298
 
     t0 = time.time()
 

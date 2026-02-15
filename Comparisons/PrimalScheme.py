@@ -52,8 +52,6 @@ def main():
     sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
     protein_name = "SPAP"
 
-    # ---- Args ----
-    sys.argv = [sys.argv[0], "--file_path", "input_path", "--output", "output_path"]
     args = get_args()
 
     t0 = time.time()
@@ -80,7 +78,7 @@ def main():
             )
 
     primal_scheme_set = primer_df.loc[primal_scheme_primers].copy().reset_index()
-    primal_scheme_efficiency = float(primal_scheme_set["efficiency"].sum())
+    primal_scheme_efficiency = float(primal_scheme_set["efficiency"].mean())
 
     # ---- Graph + PD_single ----
     tracemalloc.start()
@@ -92,7 +90,7 @@ def main():
     PD_single_path = full_path[1:-1]
 
     primer_set = primer_df.loc[PD_single_path].copy().reset_index()
-    PD_single_efficiency = float(primer_set["efficiency"].sum())
+    PD_single_efficiency = float(primer_set["efficiency"].mean())
 
     total_time = time.time() - t0
 
@@ -103,8 +101,8 @@ def main():
     # ---- Save summary ----
     summary = {
         "protein_name": protein_name,
-        "PD_single_efficiency": PD_single_efficiency,
-        "PrimalScheme_efficiency": primal_scheme_efficiency,
+        "PD_single__avg_efficiency": PD_single_efficiency,
+        "PrimalScheme__avgefficiency": primal_scheme_efficiency,
         "PD_single_primers": len(PD_single_path),
         "PrimalScheme_primers": len(primal_scheme_primers),
         "total_time_sec": round(total_time, 3),

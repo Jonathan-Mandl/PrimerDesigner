@@ -6,10 +6,83 @@ import random
 from pathlib import Path
 import pandas as pd
 import networkx as nx
-
 import General.utils as GU
 from General.primer_graphs import create_primer_df, create_graph
 from General.args import *
+import csv
+
+
+def primer_seq_from_template(template_5to3: str, start: int, end: int, strand: str) -> str:
+    """
+    start/end are 0-based, python slicing semantics [start:end)
+    strand: 'f' or 'r'
+    returns primer sequence in 5'->3' orientation as ordered.
+    """
+    subseq = template_5to3[start +len(GU.UPSTREAM_NT):end + len(GU.UPSTREAM_NT)]
+    if strand.lower() == "f":
+        return subseq
+    elif strand.lower() == "r":
+        return GU.revcomp(subseq)
+    else:
+        raise ValueError(f"Unknown strand: {strand}")
+
+
+def export_null_paths_primers_py3(
+    paths,
+    template_5to3,
+    out_csv_path,
+    protein_name="GELLER",
+    method="NullWeighted"
+):
+    """
+    paths: list of paths, each path is ['s', (start,end,strand), ..., 'd']
+    Writes a CSV of all primers from all null paths (Python 3 compatible).
+    """
+
+    with open(out_csv_path, "w", newline="") as f:
+        writer = csv.writer(f)
+
+        writer.writerow([
+            "protein_name", "method", "null_path_id",
+            "primer_order", "pair_id",
+            "start", "end", "strand",
+            "primer_seq_5to3", "length"
+        ])
+
+        for path_id, path in enumerate(paths):
+
+            # strip source / sink
+            core = path
+            if core and core[0] == "s":
+                core = core[1:]
+            if core and core[-1] == "d":
+                core = core[:-1]
+
+            pair_id = -1
+
+            for primer_order, node in enumerate(core):
+                start, end, strand = node
+
+                seq = primer_seq_from_template(
+                    template_5to3, start, end, strand
+                ).upper()
+
+                if strand.lower() == "f":
+                    pair_id += 1
+
+                writer.writerow([
+                    protein_name,
+                    method,
+                    path_id,
+                    primer_order,
+                    pair_id,
+                    start,
+                    end,
+                    strand,
+                    seq,
+                    len(seq)
+                ])
+
 
 def export_primer_set(primer_df, nodes, protein_name, method):
     rows = []
@@ -87,15 +160,10 @@ def main():
     sequence_nt = sequence_nt.upper()
 
     # ---- Args (keep your sys.argv override logic) ----
-    sys.argv = [
-        sys.argv[0],
-        "--file_path", "input_path",
-        "--output", "output_path",
-    ]
     args = get_args()
 
-    args.oligo_lmin = 240
-    args.oligo_lmax = 260
+    args.oligo_lmin = 227
+    args.oligo_lmax = 298
 
     t0 = time.time()
 
@@ -103,34 +171,33 @@ def main():
     primer_df = create_primer_df(sequence_nt, args)
 
     competing_primers = []
-    f_pos = 0
+    search_pos = 0  # pointer for searching forward primers
 
     for tile in sorted(GELLER_PRIMERS.keys()):
         fwd = GELLER_PRIMERS[tile][0].upper()
         rev = GELLER_PRIMERS[tile][1].upper()
         rc_rev = rc(rev)
 
-        f_pos = find_unique(sequence_nt.upper(), fwd, f_pos)
-        r_pos = find_unique(sequence_nt.upper(), rc_rev, f_pos)
+        # find forward primer starting at search_pos
+        f_hit = find_unique(sequence_nt, fwd, search_pos)
 
-        if f_pos is None:
-            raise SystemExit(f"No sequence matched fwd primer {tile}!")
-        else:
-            competing_primers.append(
-                (f_pos - len(GU.UPSTREAM_NT), f_pos + len(fwd) - len(GU.UPSTREAM_NT), "f")
-            )
+        # find reverse primer AFTER the forward primer
+        r_hit = find_unique(sequence_nt, rc_rev, f_hit + len(fwd))
 
-        if r_pos is None:
-            raise SystemExit(f"No sequence matched rev primer {tile}!")
-        else:
-            competing_primers.append(
-                (r_pos - len(GU.UPSTREAM_NT), r_pos + len(rev) - len(GU.UPSTREAM_NT), "r")
-            )
+        # append correct positions (convert back to coords relative to mutreg start)
+        competing_primers.append(
+            (f_hit - len(GU.UPSTREAM_NT), f_hit + len(fwd) - len(GU.UPSTREAM_NT), "f")
+        )
+        competing_primers.append(
+            (r_hit - len(GU.UPSTREAM_NT), r_hit + len(rev) - len(GU.UPSTREAM_NT), "r")
+        )
+
+        search_pos = r_hit + len(rev)
 
     print("All primers were found in sequence!")
 
     geller_set = primer_df.loc[competing_primers].copy().reset_index()
-    geller_efficiency = float(geller_set["efficiency"].sum())
+    geller_efficiency = float(geller_set["efficiency"].mean())
 
     # ---- Build graph (time + peak mem) ----
     t_graph0 = time.time()
@@ -147,7 +214,7 @@ def main():
     primer_path_nodes = full_path[1:-1]  # strip s/d
 
     primer_set = primer_df.loc[primer_path_nodes].copy().reset_index()
-    primer_efficiency = float(primer_set["efficiency"].sum())
+    primer_efficiency = float(primer_set["efficiency"].mean())
 
     longest_path_time = time.time() - longest_path_t0
     total_time = time.time() - t0
@@ -161,11 +228,11 @@ def main():
         "graph_edges": len(graph.edges),
         "graph_time_sec": round(graph_time, 3),
         "graph_peak_mem_MB": round(graph_peak_mb, 1),
-        "PD_single_efficiency": primer_efficiency,
-        "Geller_efficiency": geller_efficiency,
+        "PD_avg_efficiency": primer_efficiency,
+        "Geller_avg_efficiency": geller_efficiency,
         "PD_single_primers": len(primer_path_nodes),
         "QuickChange_primers": len(competing_primers),
-        "shortest_path_time": longest_path_time,
+        "longest_path_time": longest_path_time,
         "total_time_sec": round(total_time, 3),
     }
 
@@ -176,7 +243,7 @@ def main():
     # ---- Primer lists CSV ----
     pd_nodes = primer_path_nodes
     geller_nodes = competing_primers
-    protein_name = "geller_reference"
+    protein_name = "geller"
 
     df_pd = export_primer_set(
         primer_df=primer_df,
@@ -194,8 +261,21 @@ def main():
 
     df_all = pd.concat([df_pd, df_geller], ignore_index=True)
 
-    primer_path = results_dir / "Geller_method_comparison_primers.csv"
+    primer_path = results_dir / "Geller_method_primers.csv"
     df_all.to_csv(primer_path, index=False)
+
+    # sample 1000 random paths for null distribution 
+    sampled_paths = GU.sample_paths_dag_weighted(graph,  's', 'd', k=1000, max_tries=1000, seed=42)
+
+    # save null paths
+    export_null_paths_primers_py3(
+        paths=sampled_paths,
+        template_5to3=sequence_nt,
+        out_csv_path="results/null_paths_primers_Geller.csv",
+        protein_name=protein_name,
+        method="NullWeighted"
+    )
+    print("✔ Null primer paths written")
 
 
 if __name__ == "__main__":
