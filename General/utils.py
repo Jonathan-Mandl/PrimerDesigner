@@ -7,35 +7,44 @@ import networkx as nx
 import random 
 from pathlib import Path
 from Bio import SeqIO
+from dataclasses import dataclass
+import sys
 
-UPSTREAM_NT = None
-DOWNSTREAM_NT = None
-MAX_TM = None
+def get_project_root(marker="config.json"):
+    p = Path(sys.argv[0]).resolve()
+    start_dir = p if p.is_dir() else p.parent
+    for parent in [start_dir] + list(start_dir.parents):
+        if (parent / marker).exists():
+            return parent
+    raise FileNotFoundError(f"Could not find {marker} starting from {start_dir}")
 
-def init_config(config_path=None):
-    global UPSTREAM_NT, DOWNSTREAM_NT, MAX_TM
-    if config_path is None:
-        config_path = Path(__file__).resolve().parent.parent / "config.json"
-    UPSTREAM_NT, DOWNSTREAM_NT, MAX_TM = load_config(config_path)
-    
-# load constants from config file ---
-def load_config(config_path="config.json"):
-    with open(config_path, "r") as f:
+@dataclass(frozen=True)
+class Config:
+    upstream: str
+    downstream: str
+    max_tm: float = 45.0
+
+def load_config(path="config.json") -> Config:
+
+    with open(path) as f:
         cfg = json.load(f)
-    upstream = cfg["UPSTREAM_NT"]
-    downstream = cfg["DOWNSTREAM_NT"]
-    max_tm = float(cfg.get("MAX_TM", 45.0))
-    return upstream, downstream, max_tm
+
+    return Config(
+        upstream=cfg["upstream_nt"],
+        downstream=cfg["downstream_nt"],
+        max_tm=float(cfg.get("max_tm", 45.0)),
+    )
+
+_PCR = None
 
 def get_PCR():
     global _PCR
-    PCR = p3.thermoanalysis.ThermoAnalysis()
-    return PCR
-
-PCR = get_PCR()
+    if _PCR is None:
+        _PCR = p3.thermoanalysis.ThermoAnalysis()
+    return _PCR
 
 def calc_tm(seq1, seq2):
-    return PCR.calc_heterodimer(seq1, seq2).tm
+    return get_PCR().calc_heterodimer(seq1, seq2).tm
 
 def read_fasta(fasta_path):
 
@@ -44,24 +53,18 @@ def read_fasta(fasta_path):
         return str(record.seq)
     
 def get_model(file_path=None):
-    BASE_DIR = Path(__file__).resolve().parent.parent
-
-    if file_path is None:
-        file_path = BASE_DIR / "gurobi.json"
 
     with open(file_path, 'r') as json_file:
         params = json.load(json_file)
 
     env = gp.Env(params=params)
 
-    # Create the model within the Gurobi environment
     model = gp.Model('max-sum', env=env)
-
-    model.ModelSense = -1  # This  makes model maximize
+    model.ModelSense = -1  # maximize
 
     return model
 
-def read_sequences(file_path):
+def read_sequences(file_path, cfg):
 
     mutreg_regions = []
     protein_names=[]
@@ -78,13 +81,13 @@ def read_sequences(file_path):
     # add constant upstream and downstream regions to each sequence
     for mutreg_nt in mutreg_regions:
 
-        sequence = UPSTREAM_NT + mutreg_nt + DOWNSTREAM_NT
+        sequence = cfg.upstream + mutreg_nt + cfg.downstream
         full_sequences.append(sequence)
 
     return mutreg_regions,full_sequences,protein_names
 
 def revcomp(seq):
-  return str(Seq(seq).reverse_complement())
+    return str(Seq(seq).reverse_complement())
 
 def subsequences(sequence,primer_lmin,primer_lmax): #Generates all subsequences w/ all poss. start-stop pairs
   ls = []
@@ -141,14 +144,10 @@ def longest_path_dag(G, source, target):
     
     return path
 
-def sample_paths_dag_weighted(G, source, target, k=100, max_tries=10000, seed=42, verbose = False):
+def sample_paths_dag_uniform(G, source, target, k=100, max_tries=10000, seed=42, verbose = False):
     rng = random.Random(seed)
 
     topo = list(nx.topological_sort(G))
-    pos = {n:i for i,n in enumerate(topo)}
-    
-    if pos[source] > pos[target]:
-        pass
 
     # DP: number of paths from node -> target
     ways = {n: 0 for n in G.nodes()}
