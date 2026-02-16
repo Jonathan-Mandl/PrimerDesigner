@@ -1,0 +1,3 @@
+[submodule "pcrEfficiency"]
+	path = pcrEfficiency
+	url = https://github.com/maxibor/pcrEfficiency.git
