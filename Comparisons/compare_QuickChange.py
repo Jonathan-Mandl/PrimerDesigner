@@ -42,22 +42,21 @@ def export_primer_set(primer_df, nodes, protein_name, method):
 
 def main():
     
-    protein_name = "SPAP"
-
-    GU.init_config("configs/SPAP_experiment.json")
+    # Load config
+    cfg = GU.load_config("config.json")
 
     # ---- Input sequence ----
     mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
 
-    sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
+    sequence_nt = cfg.upstream + mutreg_nt + cfg.downstream
+    protein_name = "SPAP"
 
-    # ---- Args (keep your sys.argv override logic) ----
     args = get_args()
 
     t0 = time.time()
 
     # ---- Build primer table and graph ----
-    primer_df = create_primer_df(sequence_nt, args)
+    primer_df = create_primer_df(sequence_nt, args, cfg)
 
     t_graph0 = time.time()
     tracemalloc.start()
@@ -91,7 +90,7 @@ def main():
 
     quick_primers = []
     for start, end, strand in primer_locations:
-        quick_primers.append((start - len(GU.UPSTREAM_NT)-1, end - len(GU.UPSTREAM_NT), strand))
+        quick_primers.append((start - len(cfg.upstream)-1, end - len(cfg.upstream), strand))
 
     quick_set = primer_df.loc[quick_primers].copy().reset_index()
     quick_efficiency = float(quick_set["efficiency"].mean())
@@ -114,6 +113,7 @@ def main():
         "shortest_path_time": longest_path_time,
         "total_time_sec": round(total_time, 3),
     }
+
     pd.DataFrame([row]).to_csv(results_dir / "QuickChange_comparison.csv", index=False)
 
     # ---- Primer lists CSV ----

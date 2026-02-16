@@ -43,12 +43,12 @@ def export_primer_set(primer_df, nodes, protein_name, method):
 
 def main():
 
-    GU.init_config("configs/SPAP_experiment.json")
+    cfg = GU.load_config("config.json")
 
     # ---- Input sequence ----
     mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
 
-    sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
+    sequence_nt = cfg.upstream + mutreg_nt + cfg.downstream
     protein_name = "SPAP"
 
     args = get_args()
@@ -56,7 +56,7 @@ def main():
     t0 = time.time()
 
     # ---- Build primer table ----
-    primer_df = create_primer_df(sequence_nt, args)
+    primer_df = create_primer_df(sequence_nt, args, cfg)
 
     # ---- Load PrimalScheme primers ----
     primal_scheme_primers = []
@@ -73,9 +73,10 @@ def main():
             direction = "f" if strand == "+" else "r"
 
             primal_scheme_primers.append(
-                (start - len(GU.UPSTREAM_NT), end - len(GU.UPSTREAM_NT), direction)
+                (start - len(cfg.upstream), end - len(cfg.upstream), direction)
             )
 
+    # select primers from primer_df that match the PrimalScheme output
     primal_scheme_set = primer_df.loc[primal_scheme_primers].copy().reset_index()
     primal_scheme_efficiency = float(primal_scheme_set["efficiency"].mean())
 
