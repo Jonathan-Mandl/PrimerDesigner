@@ -99,11 +99,10 @@ def _score_enddG(dg3: float) -> float:
     return piecewise_logistic_score(dg3, MinO, MaxO, Min_, Max_, MinL, MaxL)
 
 def _weighted_func_from_scores(scores: dict) -> float:
-    # Convert “higher-is-better” scores to a cost (lower-is-better)
     total_w = sum(WEIGHTS.values())
     return sum(WEIGHTS[k] * (scores[k]) for k in scores) / total_w
 
-def create_primer_df(sequence_nt, args):
+def create_primer_df(sequence_nt, args, cfg):
 
     PCR = GU.get_PCR()
 
@@ -115,8 +114,8 @@ def create_primer_df(sequence_nt, args):
     primer_f['fr'] = 'f'
 
     # Shift positions so 0 aligns to start of mutreg
-    primer_f['start'] = primer_f.start - len(GU.UPSTREAM_NT)
-    primer_f['stop']  = primer_f.stop  - len(GU.UPSTREAM_NT)
+    primer_f['start'] = primer_f.start - len(cfg.upstream)
+    primer_f['stop']  = primer_f.stop  - len(cfg.upstream)
 
     # Reverse primers at same loci (reverse-complement sequences)
     primer_r = primer_f[['seq','start','stop','fr','len']].copy()

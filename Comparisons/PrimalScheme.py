@@ -43,8 +43,7 @@ def export_primer_set(primer_df, nodes, protein_name, method):
 
 def main():
 
-    # ---- Config ----
-    GU.UPSTREAM_NT, GU.DOWNSTREAM_NT, GU.MAX_TM = GU.load_config("configs/SPAP_experiment.json")
+    GU.init_config("configs/SPAP_experiment.json")
 
     # ---- Input sequence ----
     mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")

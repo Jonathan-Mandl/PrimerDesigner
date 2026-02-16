@@ -7,7 +7,7 @@ import networkx as nx
 from General.primer_graphs import create_primer_df, create_graph
 from General.utils import *
 
-def run_longest_path(sequence_nt, mutreg_nt, protein_name, args):
+def run_longest_path(sequence_nt, mutreg_nt, protein_name, args, cfg):
     """Single-protein shortest-path run:
     - Build graph
     - Compute shortest path (s->d)
@@ -17,7 +17,7 @@ def run_longest_path(sequence_nt, mutreg_nt, protein_name, args):
     t0 = time.time()
 
     # ---- Build primer table and graph ----
-    primer_df = create_primer_df(sequence_nt, args)
+    primer_df = create_primer_df(sequence_nt, args, cfg)
 
     t_graph0 = time.time()
     graph = create_graph(primer_df, len(mutreg_nt), args)

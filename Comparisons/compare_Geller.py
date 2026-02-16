@@ -162,8 +162,8 @@ def main():
     # ---- Args (keep your sys.argv override logic) ----
     args = get_args()
 
-    args.oligo_lmin = 230
-    args.oligo_lmax = 290
+    args.oligo_lmin = 240
+    args.oligo_lmax = 260
 
     t0 = time.time()
 
@@ -265,7 +265,7 @@ def main():
     df_all.to_csv(primer_path, index=False)
 
     # sample 1000 random paths for null distribution 
-    sampled_paths = GU.sample_paths_dag_weighted(graph,  's', 'd', k=1000, max_tries=1000, seed=42)
+    sampled_paths = GU.sample_paths_dag_uniform(graph,  's', 'd', k=1000, max_tries=1000, seed=42)
 
     # save null paths
     export_null_paths_primers_py3(

@@ -8,11 +8,11 @@ import json
 from pathlib import Path
 
 
-def run_var_ilp(sequence_nt, mutreg_nt, protein_name, args):
+def run_var_ilp(sequence_nt, mutreg_nt, protein_name, args,cfg):
     """Run primer design with ILP and greedy methods, log performance, and save outputs."""
 
     # ---- Step 1: Build primers and graph ----
-    primer_df = create_primer_df(sequence_nt, args)
+    primer_df = create_primer_df(sequence_nt, args, cfg)
 
     t0 = time.time()
     graph = create_graph(primer_df, len(mutreg_nt), args)
@@ -24,7 +24,7 @@ def run_var_ilp(sequence_nt, mutreg_nt, protein_name, args):
     greedy_time = time.time() - t1
 
     # ---- Step 3: ILP model ----
-    ilp_res: ILPResult = ilp_model(graph, sequence_nt, mutreg_nt, args)
+    ilp_res: ILPResult = ilp_model(graph, sequence_nt, mutreg_nt, args, cfg)
 
     # ---- Step 4: CSV summary (no large paths) ----
     results = {
@@ -50,7 +50,6 @@ def run_var_ilp(sequence_nt, mutreg_nt, protein_name, args):
     "greedy_primer_efficiency": greedy_obj,
     "greedy_time_sec": round(greedy_time, 3),
     }
-
 
     # Ensure output directory exists
     out_dir = Path(args.output)

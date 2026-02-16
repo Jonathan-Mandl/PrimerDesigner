@@ -3,8 +3,11 @@ from __future__ import annotations
 import numpy as np
 import multiprocessing as mp
 from dataclasses import dataclass
-from General.utils import * 
+import General.utils as GU
+import math
 
+
+PCR = GU.get_PCR()
 
 # ---- calc_tm wrapper (heterodimer Tm) ----
 def calc_tm(seq1, seq2):
@@ -125,11 +128,11 @@ def _two_stage_driver(
     seq1: str,
     seq2: str,
     args,
-    stage1_func,
+    stage1_func,cfg
 ) -> set[tuple[tuple[int,int], tuple[int,int]]]:
     """Two-stage pipeline with parallel Stage 1 (candidates) and Stage 2 (expansion)."""
 
-    lmin, lmax, max_tm = args.primer_lmin, args.primer_lmax, MAX_TM
+    lmin, lmax, max_tm = args.primer_lmin, args.primer_lmax, cfg.max_tm
     n1 = len(seq1)
     last = n1 - lmax + 1  # p1 starts that fit Lmax
     if last <= 0:
@@ -139,7 +142,7 @@ def _two_stage_driver(
     procs = max(1, mp.cpu_count() - 1)
 
     # stage-1 chunk (how many p1 positions per task)
-    chunk = last // max(1, procs)
+    chunk = max(1, math.ceil(last / procs))
 
     ranges = [(i, min(i + chunk, last)) for i in range(0, last, chunk)]
     if not ranges:
@@ -165,7 +168,7 @@ def _two_stage_driver(
     with ctx.Pool(
         processes=procs,
         initializer=_init_worker_stage2,
-        initargs=(seq1, seq2, lmin, lmax, max_tm, len(UPSTREAM_NT)),
+        initargs=(seq1, seq2, lmin, lmax, max_tm, len(cfg.upstream)),
     ) as pool:
         parts_iter = pool.imap_unordered(_stage2_expand, candidates, chunksize=1)
         out: set[tuple[tuple[int,int], tuple[int,int]]] = set()
@@ -177,17 +180,17 @@ def _two_stage_driver(
 # ---------------------------
 # Public API (two functions)
 # ---------------------------
-def find_forbidden_pairs_inter(seq1: str, seq2: str, args):
+def find_forbidden_pairs_inter(seq1: str, seq2: str, args, cfg):
     """
     Find all cross-hybridizing primer pairs BETWEEN two sequences (inter-sequence).
 
     """
-    return _two_stage_driver(seq1, seq2, args, stage1_func=_stage1_chunk_inter)
+    return _two_stage_driver(seq1, seq2, args, stage1_func=_stage1_chunk_inter, cfg=cfg)
 
-def find_forbidden_pairs_intra(seq: str, args):
+def find_forbidden_pairs_intra(seq: str, args, cfg):
     """
     Find all cross-hybridizing primer pairs WITHIN the same sequence (intra-sequence).
   
     """
-    return _two_stage_driver(seq, seq, args, stage1_func=_stage1_chunk_intra)
+    return _two_stage_driver(seq, seq, args, stage1_func=_stage1_chunk_intra, cfg=cfg)
 

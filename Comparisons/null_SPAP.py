@@ -86,12 +86,11 @@ def primer_seq_from_template(template_5to3: str, start: int, end: int, strand: s
 def main():
     protein_name = "SPAP"
      # Load config
-    GU.UPSTREAM_NT, GU.DOWNSTREAM_NT, GU.MAX_TM = GU.load_config("configs/SPAP_experiment.json")
+    GU.init_config("configs/SPAP_experiment.json")
 
     mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
 
     sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
-
 
     args = get_args()
 
@@ -103,7 +102,7 @@ def main():
     # Build primer graph
     graph = create_graph(primer_df, len(mutreg_nt), args)
 
-    sampled_paths = GU.sample_paths_dag_weighted(graph,  's', 'd', k=1000, max_tries=1000, seed=42)
+    sampled_paths = GU.sample_paths_dag_uniform(graph,  's', 'd', k=1000, max_tries=1000, seed=42)
 
     export_null_paths_primers_py3(
         paths=sampled_paths,

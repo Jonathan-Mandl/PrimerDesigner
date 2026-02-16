@@ -10,13 +10,14 @@ from General.primer_graphs import create_primer_df, create_graph
 from General.primer_data import *
 from General.utils import *
 
-MUTREG_START = len(UPSTREAM_NT)
+
 
 def run_mul_greedy(
     sequences_nt: list[str],
     mutreg_regions: list[str],
     protein_names: list[str],
     args,
+    cfg
 ) -> None:
     """
     Greedy, multi–non-homologous mode:
@@ -38,7 +39,7 @@ def run_mul_greedy(
      protein_cnt,
      re_iters,
      unresolved,
-     per_protein_rows) = run_greedy(sequences_nt, mutreg_regions, protein_names, args)
+     per_protein_rows) = run_greedy(sequences_nt, mutreg_regions, protein_names, args, cfg)
     greedy_time = time.time() - t0
 
     # ---------- overall summary ----------
@@ -79,7 +80,7 @@ def run_greedy(
     sequences_nt: list[str],
     mutreg_regions: list[str],
     protein_names: list[str],
-    args,
+    args, cfg
 ):
     """
     Returns:
@@ -136,14 +137,14 @@ def run_greedy(
                 break
 
             primer_seqs = {
-                node: seq_nt[node  [0] + MUTREG_START : node[1] + MUTREG_START] for node in lp
+                node: seq_nt[node[0] + len(cfg.upstream) : node[1] + len(cfg.upstream)] for node in lp
             }
 
             violating_nodes = set()
             for node, pseq in primer_seqs.items():
                 for other_seq in selected_primers:
                     tm = calc_tm(other_seq, pseq)
-                    if tm >= MAX_TM:
+                    if tm >= cfg.max_tm:
                         cross_cnt += 1
                         violating_nodes.add(node)
                         break

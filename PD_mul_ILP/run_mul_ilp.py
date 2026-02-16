@@ -2,11 +2,10 @@ import json
 import time
 from pathlib import Path
 import pandas as pd
-
 from PD_mul_ILP.create_graphs import *
 from PD_mul_ILP.ilp_model import *
 
-def run_mul_ilp(mutreg_regions, sequences_nt, protein_names, args):
+def run_mul_ilp(mutreg_regions, sequences_nt, protein_names, args, cfg):
     """
     Runs graph creation, forbidden-pairs discovery, greedy baseline, and ILP;
     appends a single-row summary to <args.output>/mul_ilp_results.csv and
@@ -22,8 +21,8 @@ def run_mul_ilp(mutreg_regions, sequences_nt, protein_names, args):
     # GRAPH CREATION
     # --------------------------------------------------------
     print(f"[STEP] Creating graphs for {len(protein_names)} proteins...")
-    graphs, graph_time, graph_memory, primer_dfs = create_graphs(
-        mutreg_regions, sequences_nt, protein_names, args
+    graphs, graph_time, graph_memory = create_graphs(
+        mutreg_regions, sequences_nt, protein_names, args, cfg
     )
     print(f"[DONE] Graphs created in {graph_time:.2f} sec (peak {graph_memory:.1f} MB).")
 
@@ -33,7 +32,7 @@ def run_mul_ilp(mutreg_regions, sequences_nt, protein_names, args):
     print("[STEP] Finding forbidden pairs across proteins...")
     t_forbid = time.time()
     single_forbidden, multiple_forbidden, single_pair_cnt, multi_pairs_cnt = find_forbidden_pairs(
-        protein_names, sequences_nt, args
+        protein_names, sequences_nt, args, cfg
     )
     forbidden_time = time.time() - t_forbid
     print(f"[DONE] Forbidden pairs in {forbidden_time:.2f} sec "
