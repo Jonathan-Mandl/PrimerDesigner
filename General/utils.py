@@ -52,7 +52,7 @@ def read_fasta(fasta_path):
         record = next(SeqIO.parse(handle, "fasta"))
         return str(record.seq)
     
-def get_model(file_path=None):
+def get_model(file_path='gurobi.json'):
 
     with open(file_path, 'r') as json_file:
         params = json.load(json_file)

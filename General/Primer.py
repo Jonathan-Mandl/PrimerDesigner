@@ -21,7 +21,7 @@ class Primer:
         return (self.start, self.stop, ("r" if self.is_r else "f"))
 
 
-def actions(primer_df, primer,args):  # returning possible counterparts (forward -> reverse; reverse -> forward)
+def actions(primer_df, primer,tm_dict, args):  # returning possible counterparts (forward -> reverse; reverse -> forward)
     # i.e. this method gets the "neighbors"
     max_stop  = primer_df.index.get_level_values("stop").max()
     if not primer.is_r:  # fwd
@@ -36,8 +36,8 @@ def actions(primer_df, primer,args):  # returning possible counterparts (forward
 
             if args.apply_threshold:
                 # finds tm of forward and reverse primers
-                tm_f = primer_df.at[primer.tup(), 'tm']
-                tm_r = primer_df.at[(start, stop, "r"), 'tm']
+                tm_f = tm_dict[primer.tup()]
+                tm_r = tm_dict[(start, stop, "r")]
 
                 # if tm difference is larger then max_difference threshold do not add primer to graph
                 if abs(tm_f - tm_r) > args.max_difference:

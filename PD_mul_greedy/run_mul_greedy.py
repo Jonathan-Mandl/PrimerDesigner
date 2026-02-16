@@ -112,7 +112,7 @@ def run_greedy(
 
         # 1) Build primer DataFrame (time it)
         t_df0 = time.time()
-        primer_df = create_primer_df(seq_nt, args)
+        primer_df = create_primer_df(seq_nt, args, cfg)
         primer_df_time = time.time() - t_df0
 
         # 2) Build graph (time it)
