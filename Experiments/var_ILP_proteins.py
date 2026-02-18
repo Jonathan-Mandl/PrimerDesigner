@@ -9,13 +9,14 @@ from PD_var_ILP.ilp_model import *
 from General.args import *
 
 def main():
+
     args = get_args()
 
     args.output = "results/var_ILP_different_proteins_experiment"
 
     args.file_path = "data/10_protein_coding_sequences.txt"
 
-    cfg = GU.init_config("config.json")
+    cfg = GU.load_config()
 
     # Create output directory if not exists
     output_dir = Path(args.output)
@@ -24,7 +25,7 @@ def main():
 
     # load sequences
     print(f"[INFO] Reading protein coding sequences from: {args.file_path}")
-    all_mutreg_regions, all_full_sequences, all_protein_names = read_sequences(args.file_path)
+    all_mutreg_regions, all_full_sequences, all_protein_names = read_sequences(args.file_path,cfg)
     print(f"[INFO] Total proteins loaded: {len(all_protein_names)}")
 
     overall_start = time.time()

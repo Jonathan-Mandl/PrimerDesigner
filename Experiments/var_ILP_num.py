@@ -9,6 +9,7 @@ from PD_var_ILP.ilp_model import *
 from General.args import *
 
 def main():
+
     args = get_args()
 
     args.output = "results/var_ILP_num_variants_experiment"
@@ -19,11 +20,12 @@ def main():
     print(f"[INFO] Output directory: {output_dir.resolve()}")
 
     # constant seuence and parameters
-    cfg = GU.init_config("configs/SPAP_experiment.json")
+    cfg = GU.load_config("configs/SPAP_experiment.json")
 
     # load fasta sequence
     mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
 
+    sequence_nt = cfg.upstream + mutreg_nt + cfg.downstream
 
     overall_start = time.time()
     summary_rows = []
@@ -33,9 +35,6 @@ def main():
 
         # increase number of protein variants
         args.num_proteins = num
-
-        mutreg_nt = mutreg_nt
-        sequence_nt = cfg.upstream + mutreg_nt + cfg.downstream
 
         # ---- Step 1: Build primers and graph ----
         print("[STEP 1] Creating primer DataFrame...")

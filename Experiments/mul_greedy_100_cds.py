@@ -3,13 +3,14 @@ from General.args import get_args
 import General.utils as GU
 
 def main():
+
     args = get_args()
 
-    args.output = "results/mul_greedy_experiment"
+    args.output = "results/mul_greedy_100_experiment"
 
     args.file_path = "data/100_ccds_protein_sequences.txt"
 
-    cfg = GU.init_config("configs/SPAP_experiment.json")
+    cfg = GU.load_config("configs/SPAP_experiment.json")
 
     # Create output directory if not exists
     output_dir = Path(args.output)

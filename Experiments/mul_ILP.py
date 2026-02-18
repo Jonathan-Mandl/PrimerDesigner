@@ -14,7 +14,7 @@ def main():
 
     args.file_path = "data/10_protein_coding_sequences.txt"
 
-    cfg = GU.init_config("config.json")
+    cfg = GU.load_config()
 
     # Create output directory if not exists
     output_dir = Path(args.output)
@@ -44,7 +44,7 @@ def main():
         # GRAPH CREATION
         # --------------------------------------------------------
         print(f"[STEP] Creating graphs for {i} proteins...")
-        graphs, graph_time, graph_memory, primer_dfs = create_graphs(
+        graphs, graph_time, graph_memory = create_graphs(
             mutreg_regions, sequences_nt, protein_names, args, cfg
         )
         print(f"[DONE] Graphs created in {graph_time:.2f} sec (peak {graph_memory:.1f} MB).")

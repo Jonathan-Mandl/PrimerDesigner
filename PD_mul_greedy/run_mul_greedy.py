@@ -17,7 +17,7 @@ def run_mul_greedy(
     mutreg_regions: list[str],
     protein_names: list[str],
     args,
-    cfg
+    cfg, save_outputs: bool = True
 ) -> None:
     """
     Greedy, multi–non-homologous mode:
@@ -53,27 +53,29 @@ def run_mul_greedy(
         "unresolved_proteins_cnt": len(unresolved),
         "unresolved_proteins": ",".join(unresolved)
     }
-    summary_df = pd.DataFrame([summary_row])
-    summary_df.to_csv(output_dir / "PD_mul_Greedy_summary.csv", index=False)
 
-    # ---------- per-protein metrics ----------
-    # per_protein_rows already contains per-protein timings & metadata
-    if per_protein_rows:
-        pd.DataFrame(per_protein_rows).to_csv(output_dir / "per_protein_metrics.csv", index=False)
+    if save_outputs:
+        summary_df = pd.DataFrame([summary_row])
+        summary_df.to_csv(output_dir / "PD_mul_Greedy_summary.csv", index=False)
 
-    # ---------- paths ----------
-    paths_json_path = output_dir / "primers_per_protein.json"
-    out = {
-        "paths": paths
-    }
-    with open(paths_json_path, "w") as f:
-        json.dump(out, f, indent=2)
+        # ---------- per-protein metrics ----------
+        # per_protein_rows already contains per-protein timings & metadata
+        if per_protein_rows:
+            pd.DataFrame(per_protein_rows).to_csv(output_dir / "per_protein_metrics.csv", index=False)
 
-    print(f" Saved summary to: {output_dir/'summary.csv'}")
-    print(f" Saved per-protein metrics to: {output_dir/'per_protein_metrics.csv'}")
-    print(f" Saved paths to: {paths_json_path}")
+        # ---------- paths ----------
+        paths_json_path = output_dir / "primers_per_protein.json"
+        out = {
+            "paths": paths
+        }
+        with open(paths_json_path, "w") as f:
+            json.dump(out, f, indent=2)
 
-    return summary_df, paths
+        print(f" Saved summary to: {output_dir/'summary.csv'}")
+        print(f" Saved per-protein metrics to: {output_dir/'per_protein_metrics.csv'}")
+        print(f" Saved paths to: {paths_json_path}")
+
+    return summary_row
 
 
 def run_greedy(

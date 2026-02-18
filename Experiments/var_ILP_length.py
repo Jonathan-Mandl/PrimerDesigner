@@ -11,7 +11,7 @@ from General.args import *
 def main(): 
     args = get_args()
 
-    args.output = "results/SPAP_var_ILP_lengths_experiment"
+    args.output = "results/var_ILP_lengths_experiment"
 
     # Create output directory if not exists
     output_dir = Path(args.output)
@@ -19,8 +19,8 @@ def main():
     print(f"[INFO] Output directory: {output_dir.resolve()}")
 
     # read constant seuence and parameters
-    cfg = GU.init_config("configs/SPAP_experiment.json")
-    mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
+    cfg = GU.load_config("configs/SPAP_experiment.json")
+    full_mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
 
     summary_rows = []
     overall_start = time.time()
@@ -28,14 +28,12 @@ def main():
     for seq_length in range(226,1626,100):
         print(f"\n[INFO] Running for sequence length: {seq_length}")
 
-        mutreg_nt = mutreg_nt[:seq_length]
+        mutreg_nt = full_mutreg_nt[:seq_length]
         sequence_nt = cfg.upstream + mutreg_nt + cfg.downstream
 
         # ---- Step 1: Build primers and graph ----
         print("[STEP 1] Creating primer DataFrame...")
         primer_df = create_primer_df(sequence_nt, args, cfg)
-
-        print(primer_df)
 
         print("[STEP 2] Creating primer graph...")
         t0 = time.time()
