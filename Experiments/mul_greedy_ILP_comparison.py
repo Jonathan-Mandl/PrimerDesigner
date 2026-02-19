@@ -24,10 +24,10 @@ def main():
 
     summary_rows = []  # collect rows for a final aggregated CSV
 
-    for i in range(2, len(all_protein_names)):
+    for i in range(2, len(all_protein_names) + 1):
         print(f"\n[INFO] Processing {i} protein(s)...")
 
-        # Use the first i proteins (make sure to pass the SLICED lists!)
+        # Use the first i proteins 
         mutreg_regions = all_mutreg_regions[:i]
         sequences_nt   = all_full_sequences[:i]
         protein_names  = all_protein_names[:i]

@@ -1,0 +1,9 @@
+num_proteins,total_primer_efficiency,greedy_time_sec,cross_hybridizations_cnt,proteins_with_reiterations_cnt,total_reiterations,unresolved_proteins_cnt,unresolved_proteins
+2,14.95838587883135,145.975,0,0,0,0,
+3,26.761724141493637,229.823,0,0,0,0,
+4,31.858509542497444,268.822,0,0,0,0,
+5,40.75532731594772,328.217,0,0,0,0,
+6,50.95863323207077,392.058,0,0,0,0,
+7,58.822277987188514,449.511,0,0,0,0,
+8,65.22122446146776,497.145,0,0,0,0,
+9,68.77624745000335,510.167,0,0,0,0,

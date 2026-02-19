@@ -16,7 +16,7 @@ METHOD_SCORES = {
     "Álvarez-Rodríguez et al.": 1.861111,
 }
 
-OUT_FIG = "null_distribution_CVB3.png"
+OUT_FIG = "Results/null_distribution_CVB3.png"
 # ----------------------------------------
 
 
@@ -50,7 +50,7 @@ def plot_null_with_methods(null, method_scores, out_path):
         edgecolor="black",
         linewidth=0.7,
         alpha=0.85,
-        label="Null distribution"
+        label="Random design"
     )
 
     colors = {
@@ -60,17 +60,27 @@ def plot_null_with_methods(null, method_scores, out_path):
 
     # Vertical lines
     for method, score in method_scores.items():
-
         pval = empirical_p_value(null, score)
-
-        label = "%s (p = %.3g)" % (method, pval)
 
         ax.axvline(
             score,
             color=colors[method],
             linestyle="--",
             linewidth=2.5,
-            label=label
+            label=method
+        )
+
+        ymax = ax.get_ylim()[1]
+        ax.text(
+            score+0.008,
+            ymax * 1.2,
+            "p = %.3g" % pval,
+            rotation=90,
+            color=colors[method],
+            fontsize=11,
+            ha="center",
+            va="top",
+            fontweight="bold"
         )
 
     # Labels

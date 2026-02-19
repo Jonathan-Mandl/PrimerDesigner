@@ -25,7 +25,7 @@ def main():
     summary_rows = []
     overall_start = time.time()
 
-    for seq_length in range(226,1626,100):
+    for seq_length in range(226,1627,100):
         print(f"\n[INFO] Running for sequence length: {seq_length}")
 
         mutreg_nt = full_mutreg_nt[:seq_length]

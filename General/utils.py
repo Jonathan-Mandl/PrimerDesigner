@@ -8,15 +8,7 @@ import random
 from pathlib import Path
 from Bio import SeqIO
 from dataclasses import dataclass
-import sys
 
-def get_project_root(marker="config.json"):
-    p = Path(sys.argv[0]).resolve()
-    start_dir = p if p.is_dir() else p.parent
-    for parent in [start_dir] + list(start_dir.parents):
-        if (parent / marker).exists():
-            return parent
-    raise FileNotFoundError(f"Could not find {marker} starting from {start_dir}")
 
 @dataclass(frozen=True)
 class Config:

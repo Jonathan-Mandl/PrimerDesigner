@@ -8,6 +8,7 @@ from General.args import *
 
 
 def main():
+
     args = get_args()
 
     args.output = "results/mul_ILP_experiment"
@@ -21,18 +22,16 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f"[INFO] Output directory: {output_dir.resolve()}")
 
-    # ============================================================
-    # LOAD SEQUENCES
-    # ============================================================
+
+    # load sequences
     print(f"[INFO] Reading protein coding sequences from: {args.file_path}")
     all_mutreg_regions, all_full_sequences, all_protein_names = read_sequences(args.file_path, cfg)
     print(f"[INFO] Total proteins loaded: {len(all_protein_names)}")
     overall_start = time.time()
-    # ============================================================
-    # MAIN LOOP: number of proteins 2–10
-    # ============================================================
+
+    # main loop
     summary_rows = []  
-    for i in range(2,len(all_protein_names)):
+    for i in range(1,len(all_protein_names)+1):
         print(f"\n[INFO] Processing {i} protein(s)...")
 
         # Subset of first i proteins
@@ -40,9 +39,8 @@ def main():
         sequences_nt = all_full_sequences[:i]
         protein_names = all_protein_names[:i]
 
-        # --------------------------------------------------------
-        # GRAPH CREATION
-        # --------------------------------------------------------
+
+        # graph creation
         print(f"[STEP] Creating graphs for {i} proteins...")
         graphs, graph_time, graph_memory = create_graphs(
             mutreg_regions, sequences_nt, protein_names, args, cfg
@@ -60,9 +58,7 @@ def main():
               f"(single={single_pair_cnt}, inter={multi_pairs_cnt}).")
 
 
-        # --------------------------------------------------------
-        # ILP OPTIMIZATION
-        # --------------------------------------------------------
+        # ILP optimization
         print(f"[STEP] Running ILP model...")
         ilp_res = run_ilp(single_forbidden, multiple_forbidden, protein_names, graphs)
         print(
@@ -72,10 +68,7 @@ def main():
 
         del single_forbidden, multiple_forbidden
 
-        # ============================================================
-        # SAVE RESULTS (CSV + JSON per iteration)
-        # ============================================================
-
+        # save results for this iteration
         # ---- CSV ----
         results = {
             "num_proteins": len(protein_names),
@@ -97,7 +90,7 @@ def main():
 
         summary_rows.append(results.copy())
 
-        # ---- JSON ----
+        # save paths in json
         json_path = output_dir / f"paths_{i:02d}_proteins.json"
 
         def to_jsonable_paths(paths_dict):
