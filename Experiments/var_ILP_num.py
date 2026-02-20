@@ -12,7 +12,7 @@ def main():
 
     args = get_args()
 
-    args.output = "results/var_ILP_num_variants_experiment"
+    args.output = "Results"
 
     # Create output directory if not exists
     output_dir = Path(args.output)
@@ -86,24 +86,12 @@ def main():
 
         summary_rows.append(results)
 
-        # ---- Step 5: Save JSON paths ----
-        paths_out = {
-            "protein_name": "SPAP",
-            "num_variants": num,
-            "ilp_path": ilp_res.paths,
-            "greedy_path": greedy_solution,
-        }
-
-        json_path = output_dir / f"paths_{num}_variants.json"
-        with open(json_path, "w") as f:
-            json.dump(paths_out, f, indent=2)
-        print(f"Saved JSON paths: {json_path}")
 
 
     overall_end = time.time()
     total_minutes = (overall_end - overall_start) / 60
     final_df = pd.DataFrame(summary_rows)
-    final_csv_path = output_dir / "results_all_variants.csv"
+    final_csv_path = output_dir / "PD-var-ILP-increasing_variants.csv"
     final_df.to_csv(final_csv_path, index=False)
     print(f"\n[ALL DONE] All sequence lengths processed successfully.")
     print(f"[TOTAL RUNTIME] {total_minutes:.2f} minutes ({overall_end - overall_start:.1f} seconds total)")

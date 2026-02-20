@@ -90,7 +90,8 @@ def run_mul_greedy(
         "proteins_with_reiterations_cnt": protein_cnt,
         "total_reiterations": re_iters,
         "unresolved_proteins_cnt": len(unresolved),
-        "unresolved_proteins": ",".join(unresolved)
+        "unresolved_proteins": ",".join(unresolved),
+        "total_primers": sum(len(p) for p in paths.values())
     }
 
     if save_outputs:

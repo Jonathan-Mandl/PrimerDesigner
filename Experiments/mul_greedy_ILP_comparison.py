@@ -11,7 +11,7 @@ def main():
 
     cfg = GU.load_config("configs/SPAP_experiment.json")
 
-    args.output = "results/mul_greedy_ILP_comparison"
+    args.output = "Results"
 
     # Create output directory if not exists
     output_dir = Path(args.output)
@@ -37,7 +37,7 @@ def main():
         summary_rows.append(summary_row)
 
     # write the aggregated results once
-    greedy_results_csv = output_dir / "greedy_results.csv"
+    greedy_results_csv = output_dir / "PD-mul-Greedy_ILP_comparison.csv"
     pd.DataFrame(summary_rows).to_csv(greedy_results_csv, index=False)
     print(f"[INFO] Saved aggregate greedy results to: {greedy_results_csv}")
 

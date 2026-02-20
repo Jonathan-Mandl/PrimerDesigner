@@ -12,7 +12,7 @@ def main():
 
     args = get_args()
 
-    args.output = "results/var_ILP_different_proteins_experiment"
+    args.output = "Results"
 
     args.file_path = "data/10_protein_coding_sequences.txt"
 
@@ -90,23 +90,11 @@ def main():
 
         summary_rows.append(results)
 
-        # ---- Step 5: Save JSON paths ----
-        paths_out = {
-            "protein_name": protein,
-            "seq_length": len(sequence_nt),
-            "ilp_path": ilp_res.paths,
-            "greedy_path": greedy_solution,
-        }
-
-        json_path = output_dir / f"paths_protein_{protein}.json"
-        with open(json_path, "w") as f:
-            json.dump(paths_out, f, indent=2)
-        print(f"Saved JSON paths: {json_path}")
 
     overall_end = time.time()
     total_minutes = (overall_end - overall_start) / 60
     final_df = pd.DataFrame(summary_rows)
-    final_csv_path = output_dir / f"final_summary_all_proteins.csv"
+    final_csv_path = output_dir / f"PD-var-ILP-different-proteins.csv"
     final_df.to_csv(final_csv_path, index=False)
     print(f"\n[ALL DONE] All protein sequences processed successfully.")
     print(f"[TOTAL RUNTIME] {total_minutes:.2f} minutes ({overall_end - overall_start:.1f} seconds total)")

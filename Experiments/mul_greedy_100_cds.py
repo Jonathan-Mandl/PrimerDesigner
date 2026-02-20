@@ -6,7 +6,7 @@ def main():
 
     args = get_args()
 
-    args.output = "results/mul_greedy_100_experiment"
+    args.output = "Results"
 
     args.file_path = "data/100_ccds_protein_sequences.txt"
 

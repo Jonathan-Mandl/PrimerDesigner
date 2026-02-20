@@ -11,7 +11,7 @@ from General.args import *
 def main(): 
     args = get_args()
 
-    args.output = "results/var_ILP_lengths_experiment"
+    args.output = "Results"
 
     # Create output directory if not exists
     output_dir = Path(args.output)
@@ -81,22 +81,9 @@ def main():
 
         summary_rows.append(results)
 
-        # ---- Save JSON paths ----
-        paths_out = {
-            "protein_name": "SPAP",
-            "seq_length": seq_length,
-            "ilp_path": ilp_res.paths,
-            "greedy_path": greedy_solution,
-        }
-
-        json_path = output_dir / f"paths_len_{seq_length}.json"
-        with open(json_path, "w") as f:
-            json.dump(paths_out, f, indent=2)
-        print(f"Saved JSON paths: {json_path}")
-
 
     final_df = pd.DataFrame(summary_rows)
-    final_csv_path = output_dir / f"final_summary_all_lengths.csv"
+    final_csv_path = output_dir / f"PD-var-ILP-increasing-lengths.csv"
     final_df.to_csv(final_csv_path, index=False)
     overall_end = time.time()
     total_minutes = (overall_end - overall_start) / 60

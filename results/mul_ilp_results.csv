@@ -1,0 +1,2 @@
+num_proteins,graph_time_sec,ilp_num_vars,ilp_num_constraints,ilp_intra_forbidden_cnt,ilp_inter_forbidden_cnt,forbidden_time_sec,ilp_setup_time_sec,ilp_optimize_time_sec,ilp_feasibility,total_primer_efficiency,num_primers
+2,17,280624,4632,0,0,23.92153000831604,8.276971101760864,1.040783166885376,FEASIBLE,1.9686454508504478,4

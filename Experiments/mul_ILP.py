@@ -11,7 +11,7 @@ def main():
 
     args = get_args()
 
-    args.output = "results/mul_ILP_experiment"
+    args.output = "Results"
 
     args.file_path = "data/10_protein_coding_sequences.txt"
 
@@ -90,31 +90,9 @@ def main():
 
         summary_rows.append(results.copy())
 
-        # save paths in json
-        json_path = output_dir / f"paths_{i:02d}_proteins.json"
-
-        def to_jsonable_paths(paths_dict):
-            out = {}
-            for name, path in (paths_dict or {}).items():
-                out[name] = [
-                    node if isinstance(node, str) else list(node)
-                    for node in path
-                ]
-            return out
-
-        combined_paths = {
-            "ILP_paths": to_jsonable_paths(ilp_res.protein_paths),
-        }
-
-        with open(json_path, "w") as f:
-            json.dump(combined_paths, f, indent=2)
-        print(f"[SAVE] JSON saved → {json_path}")
-
-        print(f"[DONE] Iteration {i} complete.\n")
-
     # FINAL SUMMARY CSV (all i)
     final_df = pd.DataFrame(summary_rows)
-    final_csv = output_dir / "results_all_proteins.csv"
+    final_csv = output_dir / "PD-mul-ILP.csv"
     final_df.to_csv(final_csv, index=False)
     print(f"[SAVE] Aggregated CSV saved → {final_csv}")
 
