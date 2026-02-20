@@ -1,2 +1,0 @@
-protein_name,num_variants,seq_length,graph_nodes,graph_edges,graph_time_sec,greedy_path_length,ilp_num_vars,ilp_path_length,ilp_num_constraints,ilp_setup_time_sec,ilp_optimize_time_sec,ILP_primer_efficiency,ILP_solution_feasibility,greedy_solution_feasibility,greedy_primer_efficiency,greedy_time_sec
-SHP2,3,92,2316,140312,1.717,6,140312,8,7404,41.08,62.375,1.7841392156202298,FEASIBLE,FEASIBLE,0.8311016128398148,0.774

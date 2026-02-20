@@ -1,3 +1,0 @@
-protein_name,seq_length,mutreg_length,primer_df_time_sec,graph_time_sec,iterations,resolved,num_primers,primer_efficiency
-SHP2,372,92,4.4874,1.6976,1,True,2,0.9843227254252239
-CXAR,372,92,4.3927,1.7093,1,True,2,0.9843227254252239

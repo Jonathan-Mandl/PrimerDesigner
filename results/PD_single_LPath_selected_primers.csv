@@ -1,3 +1,0 @@
-protein_name,primer_index,start,stop,orientation,seq,efficiency
-SHP2,0,-80,-60,f,GTGCTAGCCCCGCGAAATTA,0.5923456784365042
-SHP2,1,106,124,r,ACCATGCCACTGCCTCCT,0.3919770469887197
