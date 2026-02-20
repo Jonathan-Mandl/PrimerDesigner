@@ -5,10 +5,8 @@ import primer3 as p3
 from Bio.Seq import Seq
 import networkx as nx
 import random 
-from pathlib import Path
 from Bio import SeqIO
 from dataclasses import dataclass
-
 
 @dataclass(frozen=True)
 class Config:

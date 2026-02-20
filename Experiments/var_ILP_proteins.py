@@ -1,5 +1,4 @@
 import time
-import json
 import tracemalloc
 import pandas as pd
 from pathlib import Path

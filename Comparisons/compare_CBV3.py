@@ -1,8 +1,5 @@
-import sys
 import time
-import json
 import tracemalloc
-import random
 from pathlib import Path
 import pandas as pd
 import networkx as nx
@@ -11,14 +8,13 @@ from General.primer_graphs import create_primer_df, create_graph
 from General.args import *
 import csv
 
-
-def primer_seq_from_template(template_5to3: str, start: int, end: int, strand: str) -> str:
+def primer_seq_from_template(template_5to3: str, start: int, end: int, strand: str, cfg) -> str:
     """
     start/end are 0-based, python slicing semantics [start:end)
     strand: 'f' or 'r'
     returns primer sequence in 5'->3' orientation as ordered.
     """
-    subseq = template_5to3[start +len(GU.UPSTREAM_NT):end + len(GU.UPSTREAM_NT)]
+    subseq = template_5to3[start +len(cfg.upstream):end + len(cfg.upstream)]
     if strand.lower() == "f":
         return subseq
     elif strand.lower() == "r":
@@ -27,12 +23,13 @@ def primer_seq_from_template(template_5to3: str, start: int, end: int, strand: s
         raise ValueError(f"Unknown strand: {strand}")
 
 
-def export_null_paths_primers_py3(
+def export_null_paths_primers_py(
     paths,
     template_5to3,
     out_csv_path,
     protein_name="GELLER",
-    method="NullWeighted"
+    method="NullWeighted",
+    cfg=None,
 ):
     """
     paths: list of paths, each path is ['s', (start,end,strand), ..., 'd']
@@ -64,7 +61,7 @@ def export_null_paths_primers_py3(
                 start, end, strand = node
 
                 seq = primer_seq_from_template(
-                    template_5to3, start, end, strand
+                    template_5to3, start, end, strand, cfg,
                 ).upper()
 
                 if strand.lower() == "f":
@@ -151,24 +148,24 @@ GELLER_PRIMERS = {
 
 def main():
 
-    GU.init_config("configs/geller_experiment.json")
+    cfg = GU.load_config("configs/geller_experiment.json")
 
     mutreg_nt = GU.read_fasta("data/geller_reference.fa")
 
-    sequence_nt = GU.UPSTREAM_NT + mutreg_nt + GU.DOWNSTREAM_NT
+    sequence_nt = cfg.upstream + mutreg_nt + cfg.downstream
 
     sequence_nt = sequence_nt.upper()
 
-    # ---- Args (keep your sys.argv override logic) ----
     args = get_args()
 
+    # adjust oligo lengths to match CVB3 primers 
     args.oligo_lmin = 240
     args.oligo_lmax = 260
 
     t0 = time.time()
 
     # ---- Build primer table ----
-    primer_df = create_primer_df(sequence_nt, args)
+    primer_df = create_primer_df(sequence_nt, args, cfg)
 
     competing_primers = []
     search_pos = 0  # pointer for searching forward primers
@@ -186,16 +183,18 @@ def main():
 
         # append correct positions (convert back to coords relative to mutreg start)
         competing_primers.append(
-            (f_hit - len(GU.UPSTREAM_NT), f_hit + len(fwd) - len(GU.UPSTREAM_NT), "f")
+            (f_hit - len(cfg.upstream), f_hit + len(fwd) - len(cfg.upstream), "f")
         )
         competing_primers.append(
-            (r_hit - len(GU.UPSTREAM_NT), r_hit + len(rev) - len(GU.UPSTREAM_NT), "r")
+            (r_hit - len(cfg.upstream), r_hit + len(rev) - len(cfg.upstream), "r")
         )
 
+        # advance search position for next forward primer to be after this one
         search_pos = f_hit + len(fwd)
 
     print("All primers were found in sequence!")
 
+    # choose only those primers from the graph that match the Geller's primers
     geller_set = primer_df.loc[competing_primers].copy().reset_index()
     geller_efficiency = float(geller_set["efficiency"].mean())
 
@@ -207,19 +206,22 @@ def main():
     graph_peak_mb = tracemalloc.get_traced_memory()[1] / 1e6
     tracemalloc.stop()
 
-    # ---- Longest path ----
+    # ---- find longest path ----
     longest_path_t0 = time.time()
 
     full_path = GU.longest_path_dag(graph, "s", "d")
-    primer_path_nodes = full_path[1:-1]  # strip s/d
 
+    primer_path_nodes = full_path[1:-1]  # strip s/d vertices
+
+    # check that all nodes in path are in primer_df
     primer_set = primer_df.loc[primer_path_nodes].copy().reset_index()
     primer_efficiency = float(primer_set["efficiency"].mean())
 
     longest_path_time = time.time() - longest_path_t0
     total_time = time.time() - t0
+
     # ---- Create results directory ----
-    results_dir = Path("results")
+    results_dir = Path("Results")
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # ---- Summary CSV ----
@@ -231,13 +233,13 @@ def main():
         "PD_avg_efficiency": primer_efficiency,
         "Geller_avg_efficiency": geller_efficiency,
         "PD_single_primers": len(primer_path_nodes),
-        "QuickChange_primers": len(competing_primers),
+        "Geller_primers": len(competing_primers),
         "longest_path_time": longest_path_time,
         "total_time_sec": round(total_time, 3),
     }
 
     df = pd.DataFrame([row])
-    summary_path = results_dir / "Geller_method_comparison.csv"
+    summary_path = results_dir / "CVB3_comparison.csv"
     df.to_csv(summary_path, index=False)
 
     # ---- Primer lists CSV ----
@@ -261,19 +263,19 @@ def main():
 
     df_all = pd.concat([df_pd, df_geller], ignore_index=True)
 
-    primer_path = results_dir / "Geller_method_primers.csv"
+    primer_path = results_dir / "CVB3_primers.csv"
     df_all.to_csv(primer_path, index=False)
 
     # sample 1000 random paths for null distribution 
     sampled_paths = GU.sample_paths_dag_uniform(graph,  's', 'd', k=1000, max_tries=1000, seed=42)
 
     # save null paths
-    export_null_paths_primers_py3(
+    export_null_paths_primers_py(
         paths=sampled_paths,
         template_5to3=sequence_nt,
-        out_csv_path="results/null_paths_primers_Geller.csv",
+        out_csv_path=results_dir / "null_paths_primers_CVB3.csv",
         protein_name=protein_name,
-        method="NullWeighted"
+        method="NullWeighted", cfg=cfg
     )
     print("✔ Null primer paths written")
 
