@@ -96,7 +96,7 @@ def ilp_model(graph, sequence_nt, mutreg_nt, args,cfg):
     ij = gp.tuplelist()
     w_ij = gp.tupledict()
 
-    # add dinary variable for each graph edge
+    # add binary variable for each graph edge
     for edge in graph_edges:
         l = (str(edge[0]), str(edge[1]))
         ij.append(l)

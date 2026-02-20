@@ -106,8 +106,6 @@ def create_primer_df(sequence_nt, args, cfg):
 
     PCR = GU.get_PCR()
 
-    print("Creating primer df")
-
     # Forward primers
     primer_f = pd.DataFrame(columns=['seq', 'start', 'stop', 'fr', 'len'])
     primer_f[['seq','start','stop','len']] = GU.subsequences(sequence_nt, args.primer_lmin, args.primer_lmax)

@@ -1,16 +1,55 @@
 from __future__ import annotations
-
 from pathlib import Path
 import time
-import json
 import pandas as pd
 import networkx as nx
-
 from General.primer_graphs import create_primer_df, create_graph
 from General.primer_data import *
 from General.utils import *
+import ast
 
+def node_to_tuple(node):
+    return ast.literal_eval(node) if isinstance(node, str) else node
 
+def save_mul_paths_as_csv(paths: dict[str, list[tuple[int,int,str]]],
+                          sequences_by_name: dict[str, str],
+                          cfg,
+                          out_csv_path: Path) -> None:
+    """
+    Save selected primers (per protein) as a flat CSV.
+    Uses the full sequence to extract the primer sequence; handles orientation by revcomp if needed.
+    """
+    rows = []
+    up = len(cfg.upstream)
+
+    for protein_name, node_list in (paths or {}).items():
+        seq_nt = sequences_by_name[protein_name]
+
+        for primer_index, node in enumerate(node_list):
+
+            start, stop, fr = node_to_tuple(node)
+
+            # extract from full sequence using upstream offset (same as your code)
+            primer_seq = seq_nt[start + up : stop + up]
+
+            # if you want the primer as the actual oligo sequence:
+            if fr == "r":
+                primer_seq = revcomp(primer_seq)   # make sure revcomp() exists in your utils
+
+            rows.append({
+                "protein_name": protein_name,
+                "primer_index": primer_index,
+                "start": int(start),
+                "stop": int(stop),
+                "orientation": fr,
+                "seq": primer_seq,
+            })
+
+    df = pd.DataFrame(rows, columns=[
+        "protein_name", "primer_index", "start", "stop", "orientation", "seq"
+    ])
+    df.to_csv(out_csv_path, index=False)
+    print(f"[SAVE] Selected primers CSV → {out_csv_path}")
 
 def run_mul_greedy(
     sequences_nt: list[str],
@@ -61,21 +100,15 @@ def run_mul_greedy(
         # ---------- per-protein metrics ----------
         # per_protein_rows already contains per-protein timings & metadata
         if per_protein_rows:
-            pd.DataFrame(per_protein_rows).to_csv(output_dir / "per_protein_metrics.csv", index=False)
+            pd.DataFrame(per_protein_rows).to_csv(output_dir / "PD_mul_Greedy_per_protein_metrics.csv", index=False)
 
-        # ---------- paths ----------
-        paths_json_path = output_dir / "primers_per_protein.json"
-        out = {
-            "paths": paths
-        }
-        with open(paths_json_path, "w") as f:
-            json.dump(out, f, indent=2)
+        sequences_by_name = dict(zip(protein_names, sequences_nt))
 
-        print(f" Saved summary to: {output_dir/'summary.csv'}")
-        print(f" Saved per-protein metrics to: {output_dir/'per_protein_metrics.csv'}")
-        print(f" Saved paths to: {paths_json_path}")
+        # ---------- selected primers CSV ----------
+        paths_csv_path = output_dir / "PD_mul_Greedy_selected_primers.csv"
+        save_mul_paths_as_csv(paths, sequences_by_name, cfg, paths_csv_path)
 
-    return summary_row
+    return summary_row, paths
 
 
 def run_greedy(
