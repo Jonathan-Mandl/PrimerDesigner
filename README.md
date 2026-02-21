@@ -65,6 +65,17 @@ SHP2  ATGACATCGCGGAGATGGTTTCACCCAAATATCACTGGTGTGGAGGCAGAAAACCTACTGTTGACAAGAGGAGT
 CXAR  ATGGCGCTCCTGCTGTGCTTCGTGCTCCTGTGCGGAGTAGTGGATTTCGCCAGAAGTTTGAGTATCACTACTCC....
 ```
 
+Create a config.json file containing the upstream and downstream sequences to be added to the the mutagenized regions
+Example:
+
+```json
+{
+  "upstream_nt": "GCTAGTGGTGCTAGCCCCGCGAAATTAATACGACTCACTATAGGGTCTAGA....",
+  "downstream_nt": "GGAGGGTCTGGGGGAGGAGGCAGTGGCATGGTGAGCAAGGGCGAGGAGC...."
+}
+```
+
+
 ## Running PrimerDesginer
 
 To execute PrimerDesginer, use the following command:
@@ -75,7 +86,7 @@ python ./tool.py --version <version> --file_path <file-path>  --output <output-f
 - **file_path**: The file path of the protein coding-sequences
 - **version**: Specifies which version of the algorithm to run. The options are: `PD-single-LPath`, `PD-mul-ILP`, `PD-mul-Greedy` and `PD-var-ILP` (default:  `PD-single-LPath`)
 - **output**: The path of the folder that the run's output file will be saved to.
-  
+-- **config**: The Path of the config.json file containing upstream and downstream regions 
 The other arguments are optional and include the algorithm parameters:
 
 ### Parameters
@@ -124,7 +135,7 @@ The other arguments are optional and include the algorithm parameters:
 
 Example command:
 ```bash
-python ./tool.py --version PD-mul-ILP --file_path example_proteins.txt  --output run_output --primer_lmin 20 --primer_lmax 26 --oligo_lmin 180 --oligo_lmax 200
+python ./tool.py --version PD-mul-ILP --file_path example_proteins.txt  --config config.json --output run_output --primer_lmin 20 --primer_lmax 26 --oligo_lmin 180 --oligo_lmax 200
 ```
 
 
