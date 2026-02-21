@@ -1,0 +1,13 @@
+Writing log to output/scheme.log
+References:
+ - SPAP
+Primary reference for coordinate system: SPAP
+Considering primers from all references
+All done! Scheme created with 15 regions, 1 gap, 92.81% coverage
+Writing output/scheme.primer.bed
+Writing output/scheme.insert.bed
+Writing output/scheme.primer.tsv
+Writing output/scheme.reference.fasta
+Writing output/scheme.plot.pdf
+Writing output/scheme.plot.svg
+Writing output/scheme.report.json
