@@ -66,6 +66,7 @@ CXAR  ATGGCGCTCCTGCTGTGCTTCGTGCTCCTGTGCGGAGTAGTGGATTTCGCCAGAAGTTTGAGTATCACTACTCC
 ```
 
 Create a config.json file containing the upstream and downstream sequences to be added to the the mutagenized regions
+
 Example:
 
 ```json
