@@ -87,8 +87,8 @@ To compute PCR efficiency scores for the random primer designs (null distributio
 python null_dist.py   --null_csv null_paths_primers_CVB3.csv   --template_fasta CVB3_reference.fa   --out_csv null_efficiency_scores.csv
 ```
 This will:
-	•	evaluate PCR efficiency for each sampled null primer path
-	•	save the results to null_efficiency_scores.csv
+- evaluate PCR efficiency for each sampled null primer path
+-	save the results to null_efficiency_scores.csv
   
 ---
 
