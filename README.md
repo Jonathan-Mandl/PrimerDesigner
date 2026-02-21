@@ -147,7 +147,7 @@ To reproduce comparisons between PrimerDesigner and existing tools, follow the g
   See [docs/Running_comparisons.md](docs/Running_comparisons.md)
 
 - **PCR efficiency evaluation using the pcrEfficiency model:**  
-  See [docs/PCR_Efficiency.md](docs/PCR_Efficiency.md)
+  See [docs/pcr_Efficiency.md](docs/pcr_Efficiency.md)
 
 
 
