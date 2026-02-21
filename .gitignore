@@ -9,3 +9,6 @@ gurobi.json
 
 # Shell scripts
 *.sh
+
+logs/
+Temp/
