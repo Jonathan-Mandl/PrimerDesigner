@@ -139,9 +139,15 @@ Example command:
 python ./tool.py --version PD-mul-ILP --file_path example_proteins.txt  --config config.json --output run_output --primer_lmin 20 --primer_lmax 26 --oligo_lmin 180 --oligo_lmax 200
 ```
 
+## Running Comparisons with Existing Tools
 
+To reproduce comparisons between PrimerDesigner and existing tools, follow the guide below:
 
+- **Comparison workflow:**  
+  See [docs/Running_comparisons.md](docs/Running_comparisons.md)
 
+- **PCR efficiency evaluation using the pcrEfficiency model:**  
+  See [docs/PCR_Efficiency.md](docs/PCR_Efficiency.md)
 
 
 
