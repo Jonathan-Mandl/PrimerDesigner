@@ -1,15 +1,37 @@
-import sys
 import time
 import tracemalloc
 from pathlib import Path
 import pandas as pd
 from General.primer_graphs import create_primer_df, create_graph
 import General.utils as GU
-from General.args import *
+from General.args import get_args
 import csv
 
+def read_bed_primers(path, cfg):
+    primers = []
+    with open(path) as f:
+        for lineno, line in enumerate(f, 1):
+            line = line.strip()
 
-def export_null_paths_primers_py3(
+            # skip blanks + header/comment lines
+            if not line or line.startswith("#") or line.startswith("track") or line.startswith("browser"):
+                continue
+
+            fields = line.split()  # split on ANY whitespace (tabs/spaces)
+
+            if len(fields) < 6:
+                raise ValueError(f"Malformed BED line {lineno}: {line}")
+
+            start = int(fields[1]) - len(cfg.upstream)
+            end   = int(fields[2]) - len(cfg.upstream)
+            strand = fields[5]
+
+            direction = "f" if strand == "+" else "r"
+            primers.append((start, end, direction))
+
+    return primers
+
+def export_null_paths_primers_py(
     paths,
     template_5to3,
     out_csv_path,
@@ -123,10 +145,12 @@ def main():
     # ---- Input sequence ----
     mutreg_nt = GU.read_fasta("data/SPAP_reference.fa")
 
+    # add upstream/downstream padding to the sequence for primer design
     sequence_nt = cfg.upstream + mutreg_nt + cfg.downstream
 
     protein_name = "SPAP"
 
+    # get user arguments
     args = get_args()
 
     t0 = time.time()
@@ -155,48 +179,21 @@ def main():
     total_time = time.time() - t0
 
     # ---- Load QuickChange primers (from paper) ----
-    quick_primers = [
-        (31, 55, "f"), (211, 230, "r"), (183, 208, "f"), (357, 382, "r"),
-        (322, 343, "f"), (499, 518, "r"), (471, 492, "f"), (644, 669, "r"),
-        (612, 638, "f"), (784, 808, "r"), (752, 773, "f"), (925, 947, "r"),
-        (892, 919, "f"), (1066, 1088, "r"), (988, 1009, "f"), (1156, 1180, "r"),
-        (1132, 1154, "f"), (1303, 1324, "r"), (1261, 1281, "f"),
-        (1432, 1459, "r"), (1406, 1427, "f"), (1563, 1586, "r"),
-        (1529, 1550, "f"), (1639, 1662, "r"), (1613, 1637, "f"),
-        (1730, 1751, "r"),
-    ]
+    quick_primers = read_bed_primers("Comparisons/QuickChange_primers.bed", cfg)
 
-    for start, end, strand in quick_primers:
-        quick_primers.append((start - len(cfg.upstream)-1, end - len(cfg.upstream), strand))
-
-    # select only those primers from the graph that match the QuickChange primers
+    # select only those primers from the dataframe that match the QuickChange primers
     quick_set = primer_df.loc[quick_primers].copy().reset_index()
     quick_efficiency = float(quick_set["efficiency"].mean())
 
     # ---- Load PrimalScheme primers (bed file) ----
-    primal_scheme_primers = []
-    with open("Comparisons/PrimalScheme_primer.bed") as f:
-        for line in f:
-            if line.startswith("#") or not line.strip():
-                continue
-
-            fields = line.strip().split("\t")
-            start = int(fields[1])
-            end = int(fields[2])
-            strand = fields[5]
-
-            direction = "f" if strand == "+" else "r"
-
-            primal_scheme_primers.append(
-                (start - len(cfg.upstream), end - len(cfg.upstream), direction)
-            )
+    primal_scheme_primers = read_bed_primers("Comparisons/PrimalScheme_primers.bed", cfg)
 
     # select primers from primer_df that match the PrimalScheme's primers
     primal_scheme_set = primer_df.loc[primal_scheme_primers].copy().reset_index()
     primal_scheme_efficiency = float(primal_scheme_set["efficiency"].mean())
 
     # ---- Create results directory ----
-    results_dir = Path("Results")
+    results_dir = Path("Comparisons/Results")
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # ---- Summary CSV ----
@@ -240,14 +237,16 @@ def main():
         method="PrimalScheme",
     )
 
+    # concatenate all primer sets into one DataFrame and save to CSV
     pd.concat([df_pd, df_quick, df_primal], ignore_index=True).to_csv(
         results_dir / "SPAP_primers.csv",
         index=False,
     )
 
+    # sample 1000 random paths from the graph for null distribution 
     sampled_paths = GU.sample_paths_dag_uniform(graph,  's', 'd', k=1000, max_tries=1000, seed=42)
 
-    export_null_paths_primers_py3(
+    export_null_paths_primers_py(
         paths=sampled_paths,
         template_5to3=sequence_nt,
         out_csv_path=results_dir / "null_paths_primers_SPAP.csv",

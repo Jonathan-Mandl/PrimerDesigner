@@ -1,2 +1,0 @@
-graph_nodes,graph_edges,graph_time_sec,graph_peak_mem_MB,PD_avg_efficiency,Geller_avg_efficiency,PD_single_primers,QuickChange_primers,longest_path_time,total_time_sec
-96348,14189030,579.94,6392.4,0.46433664453438345,0.2550061618391629,44,36,40.717217683792114,684.764

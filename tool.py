@@ -1,9 +1,9 @@
 from General.args import *
 from General.utils import *
-from PD_var_ILP.run_var_ilp import *
-from PD_mul_ILP.run_mul_ilp import *
-from PD_mul_greedy.run_mul_greedy import *
-from PD_single_LPath.run_pd_single_LPath import *
+from PD_var_ILP.run_var_ilp import run_var_ilp
+from PD_mul_ILP.run_mul_ilp import run_mul_ilp
+from PD_mul_greedy.run_mul_greedy import run_mul_greedy
+from PD_single_LPath.run_pd_single_LPath import run_longest_path
 
 
 def main():

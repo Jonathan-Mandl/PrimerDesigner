@@ -5,8 +5,19 @@ import pandas as pd
 import networkx as nx
 import General.utils as GU
 from General.primer_graphs import create_primer_df, create_graph
-from General.args import *
+from General.args import get_args
 import csv
+
+
+def read_primers_csv(path):
+    primers = {}
+    with open(path) as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            tile = int(row["tile"])
+            primers[tile] = (row["fwd"].upper(), row["rev"].upper())
+    return primers
+
 
 def primer_seq_from_template(template_5to3: str, start: int, end: int, strand: str, cfg) -> str:
     """
@@ -27,7 +38,7 @@ def export_null_paths_primers_py(
     paths,
     template_5to3,
     out_csv_path,
-    protein_name="GELLER",
+    protein_name="CVB3",
     method="NullWeighted",
     cfg=None,
 ):
@@ -124,41 +135,25 @@ def find_unique(haystack: str, needle: str, prev_pos):
     return p
 
 
-GELLER_PRIMERS = {
-    1:  ("taccactactaggcaaagcatcact",           "ctcttggacctctactagacctgg"),
-    2:  ("gcactacccaatttcgtttgaagga",           "ccgaatgcatttccaagctgttc"),
-    3:  ("gaacagggagtgaaggactatgtg",            "cagccatagggattccgtaatattg"),
-    4:  ("gtggctcaaacagaaggtgtca",              "gttcctggtcactttgggatgg"),
-    5:  ("cacaatcgagcagagcgcg",                 "tttctcagcaagcgaccttcc"),
-    6:  ("caagtcggtggcaacaaacttaatt",           "cggtgaggtgaacagaatgcc"),
-    7:  ("catggctgccctagaagagaaa",              "aattgaccgggcaacactcatc"),
-    8:  ("cccatgtcagtcaagacttgtgac",            "gtgcaacgctaattttgatctctct"),
-    9:  ("caccgagatgtttagggagtacaat",           "ccactgacacaaatgtggtcaa"),
-    10: ("ggctttcatttgcttacaggca",              "gcccacctgtcatagatgcc"),
-    11: ("gaatatggcgagtttaccatgctg",            "gttgggaaacttgctggtgttaat"),
-    12: ("ggttaatgaggcagtgctagca",              "caccttgctcatcattgaagtagtg"),
-    13: ("cttctcagcagcactcctcaaa",              "gcgtagtggtccactgcttc"),
-    14: ("acacgtggatgagtacatgctg",              "cttctctatggacctgagctcat"),
-    15: ("cctgaacctaccaatggtgacttat",           "ccagacagggcttaagctagc"),
-    16: ("agcatttgattactctgggtacgat",           "caccatatgcgatcatcctgaattg"),
-    17: ("gtgtacaaagggattgacttggac",            "ttgattcgtgtatgtctttcatggg"),
-    18: ("cttcctggtgcatcctgttatg",              "agcacagtagggttaagccaa"),
-}
-
 
 def main():
 
-    cfg = GU.load_config("configs/geller_experiment.json")
+    CVB3_PRIMERS = read_primers_csv("Comparisons/CVB3_primers.csv")
 
-    mutreg_nt = GU.read_fasta("data/geller_reference.fa")
+    # load upstream/downstream context and other parameters from config
+    cfg = GU.load_config("configs/CVB3_experiment.json")
 
+    mutreg_nt = GU.read_fasta("data/CVB3_reference.fa")
+
+    # append upstream/downstream padding to the sequence for primer design
     sequence_nt = cfg.upstream + mutreg_nt + cfg.downstream
 
     sequence_nt = sequence_nt.upper()
 
+    # get user arguments (e.g. for primer design parameters like Tm, GC content, etc.)
     args = get_args()
 
-    # adjust oligo lengths to match CVB3 primers 
+    # adjust oligo lengths to match CVB3 primers of length ~250bp
     args.oligo_lmin = 240
     args.oligo_lmax = 260
 
@@ -170,9 +165,9 @@ def main():
     competing_primers = []
     search_pos = 0  # pointer for searching forward primers
 
-    for tile in sorted(GELLER_PRIMERS.keys()):
-        fwd = GELLER_PRIMERS[tile][0].upper()
-        rev = GELLER_PRIMERS[tile][1].upper()
+    for tile in sorted(CVB3_PRIMERS.keys()):
+        fwd = CVB3_PRIMERS[tile][0].upper()
+        rev = CVB3_PRIMERS[tile][1].upper()
         rc_rev = rc(rev)
 
         # find forward primer starting at search_pos
@@ -194,9 +189,9 @@ def main():
 
     print("All primers were found in sequence!")
 
-    # choose only those primers from the graph that match the Geller's primers
-    geller_set = primer_df.loc[competing_primers].copy().reset_index()
-    geller_efficiency = float(geller_set["efficiency"].mean())
+    # choose only those primers from the graph that match the CVB3 primers
+    CVB3_set = primer_df.loc[competing_primers].copy().reset_index()
+    CVB3_efficiency = float(CVB3_set["efficiency"].mean())
 
     # ---- Build graph (time + peak mem) ----
     t_graph0 = time.time()
@@ -221,7 +216,7 @@ def main():
     total_time = time.time() - t0
 
     # ---- Create results directory ----
-    results_dir = Path("Results")
+    results_dir = Path("Comparisons/Results")
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # ---- Summary CSV ----
@@ -231,9 +226,9 @@ def main():
         "graph_time_sec": round(graph_time, 3),
         "graph_peak_mem_MB": round(graph_peak_mb, 1),
         "PD_avg_efficiency": primer_efficiency,
-        "Geller_avg_efficiency": geller_efficiency,
+        "CVB3_avg_efficiency": CVB3_efficiency,
         "PD_single_primers": len(primer_path_nodes),
-        "Geller_primers": len(competing_primers),
+        "CVB3_primers": len(competing_primers),
         "longest_path_time": longest_path_time,
         "total_time_sec": round(total_time, 3),
     }
@@ -244,8 +239,8 @@ def main():
 
     # ---- Primer lists CSV ----
     pd_nodes = primer_path_nodes
-    geller_nodes = competing_primers
-    protein_name = "geller"
+    CVB3_nodes = competing_primers
+    protein_name = "CVB3"
 
     df_pd = export_primer_set(
         primer_df=primer_df,
@@ -254,14 +249,14 @@ def main():
         method="PD_single",
     )
 
-    df_geller = export_primer_set(
+    df_CVB3 = export_primer_set(
         primer_df=primer_df,
-        nodes=geller_nodes,
+        nodes=CVB3_nodes,
         protein_name=protein_name,
-        method="Geller",
+        method="CVB3",
     )
 
-    df_all = pd.concat([df_pd, df_geller], ignore_index=True)
+    df_all = pd.concat([df_pd, df_CVB3], ignore_index=True)
 
     primer_path = results_dir / "CVB3_primers.csv"
     df_all.to_csv(primer_path, index=False)
